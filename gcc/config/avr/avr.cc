@@ -6152,6 +6152,8 @@ out_shift_with_cnt (const char *templ, rtx_insn *insn, rtx operands[],
 const char *
 ashlqi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int k;
@@ -6238,8 +6240,15 @@ ashlqi3_out (rtx_insn *insn, rtx operands[], int *len)
   else if (CONSTANT_P (operands[2]))
     fatal_insn ("internal compiler error.  Incorrect shift:", insn);
 
-  out_shift_with_cnt ("lsl %0",
-                      insn, operands, len, 1);
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsl %0",
+                          insn, operands, len, 1);
+    }
+  else
+    {
+      avr_asm_len ("%~call __lshift_8", operands, len, len_call);
+    }
   return "";
 }
 
@@ -6249,6 +6258,8 @@ ashlqi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char *
 ashlhi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int scratch = (GET_CODE (PATTERN (insn)) == PARALLEL
@@ -6497,8 +6508,16 @@ ashlhi3_out (rtx_insn *insn, rtx operands[], int *len)
 	}
       len = t;
     }
-  out_shift_with_cnt ("lsl %A0" CR_TAB
-                      "rol %B0", insn, operands, len, 2);
+
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsl %A0" CR_TAB
+                          "rol %B0", insn, operands, len, 2);
+    }
+  else
+    {
+      avr_asm_len ("%~call __lshift_16", operands, len, len_call);
+    }
   return "";
 }
 
@@ -6508,6 +6527,8 @@ ashlhi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char*
 avr_out_ashlpsi3 (rtx_insn *insn, rtx *op, int *plen)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (plen)
     *plen = 0;
 
@@ -6559,9 +6580,16 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *op, int *plen)
         }
     }
 
-  out_shift_with_cnt ("lsl %A0" CR_TAB
-                      "rol %B0" CR_TAB
-                      "rol %C0", insn, op, plen, 3);
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsl %A0" CR_TAB
+                          "rol %B0" CR_TAB
+                          "rol %C0", insn, op, plen, 3);
+    }
+  else
+    {
+      avr_asm_len ("%~call __lshift_24", op, plen, len_call);
+    }
   return "";
 }
 
@@ -6571,6 +6599,8 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *op, int *plen)
 const char *
 ashlsi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int k;
@@ -6648,10 +6678,18 @@ ashlsi3_out (rtx_insn *insn, rtx operands[], int *len)
 	}
       len = t;
     }
-  out_shift_with_cnt ("lsl %A0" CR_TAB
-                      "rol %B0" CR_TAB
-                      "rol %C0" CR_TAB
-                      "rol %D0", insn, operands, len, 4);
+
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsl %A0" CR_TAB
+                          "rol %B0" CR_TAB
+                          "rol %C0" CR_TAB
+                          "rol %D0", insn, operands, len, 4);
+    }
+  else
+    {
+      avr_asm_len ("%~call __lshift_32", operands, len, len_call);
+    }
   return "";
 }
 
@@ -6660,6 +6698,8 @@ ashlsi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char *
 ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int k;
@@ -6721,8 +6761,15 @@ ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
   else if (CONSTANT_P (operands[2]))
     fatal_insn ("internal compiler error.  Incorrect shift:", insn);
 
-  out_shift_with_cnt ("asr %0",
-                      insn, operands, len, 1);
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("asr %0",
+                          insn, operands, len, 1);
+    }
+  else
+    {
+      avr_asm_len ("%~call __arshift_8", operands, len, len_call);
+    }
   return "";
 }
 
@@ -6732,6 +6779,8 @@ ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char *
 ashrhi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int scratch = (GET_CODE (PATTERN (insn)) == PARALLEL
@@ -6886,8 +6935,16 @@ ashrhi3_out (rtx_insn *insn, rtx operands[], int *len)
 	}
       len = t;
     }
-  out_shift_with_cnt ("asr %B0" CR_TAB
-                      "ror %A0", insn, operands, len, 2);
+
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("asr %B0" CR_TAB
+                          "ror %A0", insn, operands, len, 2);
+    }
+  else
+    {
+      avr_asm_len ("%~call __arshift_16", operands, len, len_call);
+    }
   return "";
 }
 
@@ -6897,6 +6954,8 @@ ashrhi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char*
 avr_out_ashrpsi3 (rtx_insn *insn, rtx *op, int *plen)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   int dest = REGNO (op[0]);
   int src = REGNO (op[1]);
 
@@ -6944,9 +7003,16 @@ avr_out_ashrpsi3 (rtx_insn *insn, rtx *op, int *plen)
         } /* switch */
     }
 
-  out_shift_with_cnt ("asr %C0" CR_TAB
-                      "ror %B0" CR_TAB
-                      "ror %A0", insn, op, plen, 3);
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("asr %C0" CR_TAB
+                          "ror %B0" CR_TAB
+                          "ror %A0", insn, op, plen, 3);
+    }
+  else
+    {
+      avr_asm_len ("%~call __arshift_24", op, plen, len_call);
+    }
   return "";
 }
 
@@ -6956,6 +7022,8 @@ avr_out_ashrpsi3 (rtx_insn *insn, rtx *op, int *plen)
 const char *
 ashrsi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int k;
@@ -7041,10 +7109,18 @@ ashrsi3_out (rtx_insn *insn, rtx operands[], int *len)
 	}
       len = t;
     }
-  out_shift_with_cnt ("asr %D0" CR_TAB
-                      "ror %C0" CR_TAB
-                      "ror %B0" CR_TAB
-                      "ror %A0", insn, operands, len, 4);
+
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("asr %D0" CR_TAB
+                          "ror %C0" CR_TAB
+                          "ror %B0" CR_TAB
+                          "ror %A0", insn, operands, len, 4);
+    }
+  else
+    {
+      avr_asm_len ("%~call __arshift_32", operands, len, len_call);
+    }
   return "";
 }
 
@@ -7053,6 +7129,8 @@ ashrsi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char *
 lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int k;
@@ -7138,8 +7216,15 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
   else if (CONSTANT_P (operands[2]))
     fatal_insn ("internal compiler error.  Incorrect shift:", insn);
 
-  out_shift_with_cnt ("lsr %0",
-                      insn, operands, len, 1);
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsr %0",
+                          insn, operands, len, 1);
+    }
+  else
+    {
+      avr_asm_len ("%~call __rshift_8", operands, len, len_call);
+    }
   return "";
 }
 
@@ -7148,6 +7233,8 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char *
 lshrhi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int scratch = (GET_CODE (PATTERN (insn)) == PARALLEL
@@ -7396,8 +7483,16 @@ lshrhi3_out (rtx_insn *insn, rtx operands[], int *len)
 	}
       len = t;
     }
-  out_shift_with_cnt ("lsr %B0" CR_TAB
-                      "ror %A0", insn, operands, len, 2);
+
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsr %B0" CR_TAB
+                          "ror %A0", insn, operands, len, 2);
+    }
+  else
+    {
+      avr_asm_len ("%~call __rshift_16", operands, len, len_call);
+    }
   return "";
 }
 
@@ -7407,6 +7502,8 @@ lshrhi3_out (rtx_insn *insn, rtx operands[], int *len)
 const char*
 avr_out_lshrpsi3 (rtx_insn *insn, rtx *op, int *plen)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   int dest = REGNO (op[0]);
   int src = REGNO (op[1]);
 
@@ -7449,9 +7546,16 @@ avr_out_lshrpsi3 (rtx_insn *insn, rtx *op, int *plen)
         } /* switch */
     }
 
-  out_shift_with_cnt ("lsr %C0" CR_TAB
-                      "ror %B0" CR_TAB
-                      "ror %A0", insn, op, plen, 3);
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsr %C0" CR_TAB
+                          "ror %B0" CR_TAB
+                          "ror %A0", insn, op, plen, 3);
+    }
+  else
+    {
+      avr_asm_len ("%~call __rshift_24", op, plen, len_call);
+    }
   return "";
 }
 
@@ -7461,6 +7565,8 @@ avr_out_lshrpsi3 (rtx_insn *insn, rtx *op, int *plen)
 const char *
 lshrsi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
+  int len_call = 1 + AVR_HAVE_JMP_CALL;
+
   if (CONST_INT_P (operands[2]))
     {
       int k;
@@ -7538,10 +7644,18 @@ lshrsi3_out (rtx_insn *insn, rtx operands[], int *len)
 	}
       len = t;
     }
-  out_shift_with_cnt ("lsr %D0" CR_TAB
-                      "ror %C0" CR_TAB
-                      "ror %B0" CR_TAB
-                      "ror %A0", insn, operands, len, 4);
+
+  if (optimize_size)
+    {
+      out_shift_with_cnt ("lsr %D0" CR_TAB
+                          "ror %C0" CR_TAB
+                          "ror %B0" CR_TAB
+                          "ror %A0", insn, operands, len, 4);
+    }
+  else
+    {
+      avr_asm_len ("%~call __rshift_32", operands, len, len_call);
+    }
   return "";
 }
 

@@ -103,7 +103,11 @@ LIB1ASMFUNCS += \
 	_round_x8 \
 	_rounddq3 _roundudq3 \
 	_roundda3 _rounduda3 \
-	_roundta3 _rounduta3
+	_roundta3 _rounduta3 \
+	_lshift_8 _rshift_8 _arshift_8 \
+	_lshift_16 _rshift_16 _arshift_16 \
+	_lshift_24 _rshift_24 _arshift_24 \
+	_lshift_32 _rshift_32 _arshift_32
 endif
 
 LIB2FUNCS_EXCLUDE = \

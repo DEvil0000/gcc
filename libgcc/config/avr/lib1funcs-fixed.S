@@ -1924,4 +1924,1599 @@ DEFUN __ret
 ENDF  __ret
 #endif /* L_ret */
 
+#define C0 18
+#define C1 C0 + 1
+#define C2 C0 + 2
+#define C3 C0 + 3
+#define C4 C0 + 4
+#define C5 C0 + 5
+#define C6 C0 + 6
+#define C7 C0 + 7
+
+#define A0 16
+#define A1 17
+#define A2 26
+#define A3 27
+#define A4 28
+#define A5 29
+#define A6 30
+#define A7 31
+
+#define B0 12
+#define B1 13
+#define B2 14
+#define B3 15
+
+;; 8bit left shift
+#ifdef L_lshift_8
+DEFUN __lshift_8
+    cpi C4,lo8(8)
+    brlo 8f
+    ldi C6,0
+0:
+    ret
+8:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(0)
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+1:
+    lsl C6
+    ret
+2:
+    lsl C6
+    lsl C6
+    ret
+3:
+    lsl C6
+    lsl C6
+    lsl C6
+    ret
+4:
+    swap C6
+    andi C6,lo8(-16)
+    ret
+5:
+    swap C6
+    lsl C6
+    andi C6,lo8(-32)
+    ret
+6:
+    swap C6
+    lsl C6
+    lsl C6
+    andi C6,lo8(-64)
+    ret
+7:
+    ror C6
+    clr C6
+    ror C6
+    ret
+ENDF  __lshift_8
+#endif /* L_lshift_8 */
+
+;; 16bit left shift
+#ifdef L_lshift_16
+DEFUN __lshift_16
+    cpi C4,lo8(16)
+    brsh 0f
+    cpi C4,lo8(8)
+    brsh 8f
+    subi C4,lo8(-(-1))
+    cpi C4,lo8(7)
+    brlo 10f
+    ret
+8:
+    subi C4,lo8(-(-8))
+    XCALL __lshift_8
+    mov C0,C6
+    ldi C6,0
+    mov C7,C0
+    ret
+0:
+    ldi C6,0
+    ldi C7,0
+    ret
+10:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+1:
+    lsl C6
+    rol C7
+    ret
+2:
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    ret
+3:
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    ret
+4:
+    swap C6
+    swap C7
+    andi C7,0xf0
+    eor C7,C6
+    andi C6,0xf0
+    eor C7,C6
+    ret
+5:
+    lsl C6
+    rol C7
+    swap C6
+    swap C7
+    andi C7,0xf0
+    eor C7,C6
+    andi C6,0xf0
+    eor C7,C6
+    ret
+6:
+    clr __tmp_reg__
+    lsr C7
+    ror C6
+    ror __tmp_reg__
+    lsr C7
+    ror C6
+    ror __tmp_reg__
+    mov C7,C6
+    mov C6,__tmp_reg__
+    ret
+7:
+    lsr C7
+    mov C7,C6
+    clr C6
+    ror C7
+    ror C6
+    ret
+ENDF  __lshift_16
+#endif /* L_lshift_16 */
+
+;; 24bit left shift
+#ifdef L_lshift_24
+
+DEFUN __lshift_24
+    push A4
+    push A5
+    rcall .
+    rcall .
+    in A4,__SP_L__
+    in A5,__SP_H__
+    std Y+1,__zero_reg__
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+    std Y+4,__zero_reg__
+    wmov A2, C6
+    ld C0,X+
+    ld C1,X+
+    ld C2,X
+    std Y+1,C0
+    std Y+2,C1
+    std Y+3,C2
+    cpi C4,lo8(24)
+    brlo 8f
+    std Y+1,__zero_reg__
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+10:
+    ldd C4,Y+1
+    ldd C5,Y+2
+    ldd C6,Y+3
+pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop A5
+    pop A4
+    ret
+8:
+    cpi C4,lo8(16)
+    brlo 11f
+    ldd C6,Y+1
+    std Y+2,__zero_reg__
+    std Y+1,__zero_reg__
+    subi C4,lo8(-(-16))
+    XCALL __lshift_8
+    std Y+3,C6
+    rjmp 10b
+11:
+    cpi C4,lo8(8)
+    brlo 12f
+    ldd C6,Y+1
+    ldd C7,Y+2
+    subi C4,lo8(-(-9))
+    cpi C4,lo8(7)
+    brsh 13f
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+1:
+    lsl C6
+    rol C7
+    rjmp 13f
+2:
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    rjmp 13f
+3:
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    rjmp 13f
+4:
+    swap C6
+    swap C7
+    andi C7,0xf0
+    eor C7,C6
+    andi C6,0xf0
+    eor C7,C6
+    rjmp 13f
+5:
+    lsl C6
+    rol C7
+    swap C6
+    swap C7
+    andi C7,0xf0
+    eor C7,C6
+    andi C6,0xf0
+    eor C7,C6
+    rjmp 13f
+6:
+    clr __tmp_reg__
+    lsr C7
+    ror C6
+    ror __tmp_reg__
+    lsr C7
+    ror C6
+    ror __tmp_reg__
+    mov C7,C6
+    mov C6,__tmp_reg__
+    rjmp 13f
+7:
+    lsr C7
+    mov C7,C6
+    clr C6
+    ror C7
+    ror C6
+13:
+    std Y+2,C6
+    std Y+3,C7
+    std Y+1,__zero_reg__
+    rjmp 10b
+12:
+    std Y+4,__zero_reg__
+    ldd C6,Y+1
+    ldd C7,Y+2
+    ldd A2,Y+3
+    ldd A3,Y+4
+    rjmp 2f
+    1:
+    lsl C6
+    rol C7
+    rol A2
+    rol A3
+    2:
+    dec C4
+    brpl 1b
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 10b
+ENDF  __lshift_24
+#endif /* L_lshift_24 */
+
+;; 32bit left shift
+#ifdef L_lshift_32
+DEFUN __lshift_32
+    push B0
+    push B1
+    push B2
+    push B3
+    push A4
+    push A5
+    rcall .
+    rcall .
+    in A4,__SP_L__
+    in A5,__SP_H__
+    wmov A2, C6
+    ld B0,X+
+    ld B1,X+
+    ld B2,X+
+    ld B3,X
+    wmov C6, B0
+    cpi C4,lo8(32)
+    brsh 11f
+    cpi C4,lo8(24)
+    brsh 8f
+    cpi C4,lo8(16)
+    brlo .+2
+    rjmp 13f
+    mov C0,C4
+    ldi C1,0
+    cpi C4,lo8(8)
+    brlo 12f
+    mov B3,B2
+    mov B2,C7
+    mov B0,__zero_reg__
+    subi C0,8
+    sbc C1,__zero_reg__
+    wmov A2, B2
+    wmov C6, B0
+    rjmp 2f
+    1:
+    lsl C6
+    rol C7
+    rol A2
+    rol A3
+    2:
+    dec C0
+    brpl 1b
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 10f
+8:
+    mov B1,__zero_reg__
+    mov B2,__zero_reg__
+    mov B0,__zero_reg__
+    subi C4,lo8(-(-24))
+    XCALL __lshift_8
+    mov B3,C6
+    std Y+1,B0
+    std Y+2,B1
+    std Y+3,B2
+    std Y+4,B3
+10:
+    ldd C4,Y+1
+    ldd C5,Y+2
+    ldd C6,Y+3
+    ldd C7,Y+4
+pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop A5
+    pop A4
+    pop B3
+    pop B2
+    pop B1
+    pop B0
+    ret
+11:
+    std Y+1,__zero_reg__
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+    std Y+4,__zero_reg__
+    rjmp 10b
+12:
+    wmov A2, B2
+    wmov C6, B0
+    rjmp 2f
+    1:
+    lsl C6
+    rol C7
+    rol A2
+    rol A3
+    2:
+    dec C4
+    brpl 1b
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 10b
+13:
+    mov B0,__zero_reg__
+    mov B1,__zero_reg__
+    subi C4,lo8(-(-17))
+    cpi C4,lo8(7)
+    brsh 0f
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+6:
+    clr __tmp_reg__
+    lsr C7
+    ror C6
+    ror __tmp_reg__
+    lsr C7
+    ror C6
+    ror __tmp_reg__
+    mov C7,C6
+    mov C6,__tmp_reg__
+    rjmp 0f
+1:
+    lsl C6
+    rol C7
+    rjmp 0f
+2:
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    rjmp 0f
+3:
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    lsl C6
+    rol C7
+    rjmp 0f
+4:
+    swap C6
+    swap C7
+    andi C7,0xf0
+    eor C7,C6
+    andi C6,0xf0
+    eor C7,C6
+    rjmp 0f
+5:
+    lsl C6
+    rol C7
+    swap C6
+    swap C7
+    andi C7,0xf0
+    eor C7,C6
+    andi C6,0xf0
+    eor C7,C6
+    rjmp 0f
+7:
+    lsr C7
+    mov C7,C6
+    clr C6
+    ror C7
+    ror C6
+0:
+    wmov B2, C6
+    std Y+1,B0
+    std Y+2,B1
+    std Y+3,B2
+    std Y+4,B3
+    rjmp 10b
+ENDF  __lshift_32
+#endif /* L_lshift_32 */
+
+;; 8bit logic right shift
+#ifdef L_rshift_8
+DEFUN __rshift_8
+    cpi C4,lo8(8)
+    brlo 10f
+    ldi C6,0
+0:
+    ret
+10:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(0)
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+1:
+    lsr C6
+    ret
+2:
+    lsr C6
+    lsr C6
+    ret
+3:
+    lsr C6
+    lsr C6
+    lsr C6
+    ret
+4:
+    swap C6
+    andi C6,lo8(15)
+    ret
+5:
+    swap C6
+    lsr C6
+    andi C6,lo8(7)
+    ret
+6:
+    swap C6
+    lsr C6
+    lsr C6
+    andi C6,lo8(3)
+    ret
+7:
+    rol C6
+    clr C6
+    rol C6
+    ret
+ENDF  __rshift_8
+#endif /* L_rshift_8 */
+
+;; 16bit logic right shift
+#ifdef L_rshift_16
+DEFUN __rshift_16
+    wmov C0, C6
+    cpi C4,lo8(16)
+    brsh 8f
+    cpi C4,lo8(8)
+    brlo 11f
+    subi C4,lo8(-(-8))
+    mov C6,C1
+    XCALL __rshift_8
+    ldi C7,0
+    ret
+11:
+    subi C4,lo8(-(-1))
+    cpi C4,lo8(7)
+    brlo 10f
+    ret
+8:
+    ldi C6,0
+    ldi C7,0
+    ret
+10:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+1:
+    lsr C7
+    ror C6
+    ret
+2:
+    lsr C7
+    ror C6
+    lsr C7
+    ror C6
+    ret
+3:
+    lsr C7
+    ror C6
+    lsr C7
+    ror C6
+    lsr C7
+    ror C6
+    ret
+4:
+    swap C7
+    swap C6
+    andi C6,0x0f
+    eor C6,C7
+    andi C7,0x0f
+    eor C6,C7
+    ret
+5:
+    lsr C7
+    ror C6
+    swap C7
+    swap C6
+    andi C6,0x0f
+    eor C6,C7
+    andi C7,0x0f
+    eor C6,C7
+    ret
+6:
+    clr __tmp_reg__
+    lsl C6
+    rol C7
+    rol __tmp_reg__
+    lsl C6
+    rol C7
+    rol __tmp_reg__
+    mov C6,C7
+    mov C7,__tmp_reg__
+    ret
+7:
+    lsl C6
+    mov C6,C7
+    rol C6
+    sbc C7,C7
+    neg C7
+    ret
+ENDF  __rshift_16
+#endif /* L_rshift_16 */
+
+;; 24bit logic right shift
+#ifdef L_rshift_24
+DEFUN __rshift_24
+    push A4
+    push A5
+    rcall .
+    rcall .
+    in A4,__SP_L__
+    in A5,__SP_H__
+    std Y+1,__zero_reg__
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+    std Y+4,__zero_reg__
+    wmov A2, C6
+    ld C0,X+
+    ld C1,X+
+    ld C2,X
+    std Y+1,C0
+    std Y+2,C1
+    std Y+3,C2
+    cpi C4,lo8(24)
+    brlo 8f
+    std Y+1,__zero_reg__
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+0:
+    ldd C4,Y+1
+    ldd C5,Y+2
+    ldd C6,Y+3
+pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop A5
+    pop A4
+    ret
+8:
+    cpi C4,lo8(16)
+    brlo 11f
+    ldd C6,Y+3
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+    subi C4,lo8(-(-16))
+    XCALL __rshift_8
+    std Y+1,C6
+    rjmp 0b
+11:
+    cpi C4,lo8(8)
+    brlo 12f
+    ldd C6,Y+3
+    ldd A3,Y+2
+    std Y+1,A3
+    std Y+2,C6
+    std Y+3,__zero_reg__
+    ldd C6,Y+1
+    ldd C7,Y+2
+    subi C4,lo8(-(-9))
+    cpi C4,lo8(7)
+    brsh 10f
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+1:
+    lsr C7
+    ror C6
+    rjmp 10f
+2:
+    lsr C7
+    ror C6
+    lsr C7
+    ror C6
+    rjmp 10f
+3:
+    lsr C7
+    ror C6
+    lsr C7
+    ror C6
+    lsr C7
+    ror C6
+    rjmp 10f
+4:
+    swap C7
+    swap C6
+    andi C6,0x0f
+    eor C6,C7
+    andi C7,0x0f
+    eor C6,C7
+    rjmp 10f
+5:
+    lsr C7
+    ror C6
+    swap C7
+    swap C6
+    andi C6,0x0f
+    eor C6,C7
+    andi C7,0x0f
+    eor C6,C7
+    rjmp 10f
+6:
+    clr __tmp_reg__
+    lsl C6
+    rol C7
+    rol __tmp_reg__
+    lsl C6
+    rol C7
+    rol __tmp_reg__
+    mov C6,C7
+    mov C7,__tmp_reg__
+    rjmp 10f
+12:
+    std Y+4,__zero_reg__
+    ldd C6,Y+1
+    ldd C7,Y+2
+    ldd A2,Y+3
+    ldd A3,Y+4
+    rjmp 2f
+    1:
+    lsr A3
+    ror A2
+    ror C7
+    ror C6
+    2:
+    dec C4
+    brpl 1b
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 0b
+7:
+    lsl C6
+    mov C6,C7
+    rol C6
+    sbc C7,C7
+    neg C7
+10:
+    std Y+2,C7
+    std Y+1,C6
+    rjmp 0b
+ENDF  __rshift_24
+#endif /* L_rshift_24 */
+
+;; 32bit logic right shift
+#ifdef L_rshift_32
+DEFUN __rshift_32
+    push A0
+    push A1
+    push A4
+    push A5
+    rcall .
+    rcall .
+    in A4,__SP_L__
+    in A5,__SP_H__
+    wmov A6, C6
+    ld C6,Z
+    ldd C7,Z+1
+    ldd A2,Z+2
+    ldd A3,Z+3
+    cpi C4,lo8(32)
+    brsh 10f
+    cpi C4,lo8(24)
+    brlo 11f
+    subi C4,lo8(-(-24))
+    mov C6,A3
+    XCALL __rshift_8
+    mov C0,C6
+    ldi C1,0
+    ldi C2,0
+    ldi C3,0
+    std Y+1,C0
+    std Y+2,C1
+    std Y+3,C2
+    std Y+4,C3
+0:
+    ldd C4,Y+1
+    ldd C5,Y+2
+    ldd C6,Y+3
+    ldd C7,Y+4
+pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop A5
+    pop A4
+    pop A1
+    pop A0
+    ret
+10:
+    std Y+1,__zero_reg__
+    std Y+2,__zero_reg__
+    std Y+3,__zero_reg__
+    std Y+4,__zero_reg__
+    rjmp 0b
+13:
+    mov C2,C4
+    ldi C3,0
+    cpi C4,lo8(8)
+    brlo 14f
+    mov A0,C7
+    mov A1,A2
+    mov C0,A3
+    ldi C1,0
+    subi C2,8
+    sbc C3,__zero_reg__
+    wmov A2, C0
+    wmov C6, A0
+    rjmp 2f
+    1:
+    lsr A3
+    ror A2
+    ror C7
+    ror C6
+    2:
+    dec C2
+    brpl 1b
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 0b
+11:
+    cpi C4,lo8(16)
+    brlo 13b
+    wmov C0, A2
+    subi C4,lo8(-(-17))
+    cpi C4,lo8(7)
+    brsh 12f
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+14:
+    wmov C0, C6
+    wmov C2, A2
+    rjmp 2f
+    1:
+    lsr C3
+    ror C2
+    ror C1
+    ror C0
+    2:
+    dec C4
+    brpl 1b
+    std Y+1,C0
+    std Y+2,C1
+    std Y+3,C2
+    std Y+4,C3
+    rjmp 0b
+7:
+    lsl C0
+    mov C0,C1
+    rol C0
+    sbc C1,C1
+    neg C1
+12:
+    wmov C6, C0
+    ldi A2,0
+    ldi A3,0
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 0b
+1:
+    lsr C1
+    ror C0
+    rjmp 12b
+2:
+    lsr C1
+    ror C0
+    lsr C1
+    ror C0
+    rjmp 12b
+3:
+    lsr C1
+    ror C0
+    lsr C1
+    ror C0
+    lsr C1
+    ror C0
+    rjmp 12b
+4:
+    swap C1
+    swap C0
+    andi C0,0x0f
+    eor C0,C1
+    andi C1,0x0f
+    eor C0,C1
+    rjmp 12b
+5:
+    lsr C1
+    ror C0
+    swap C1
+    swap C0
+    andi C0,0x0f
+    eor C0,C1
+    andi C1,0x0f
+    eor C0,C1
+    rjmp 12b
+6:
+    clr __tmp_reg__
+    lsl C0
+    rol C1
+    rol __tmp_reg__
+    lsl C0
+    rol C1
+    rol __tmp_reg__
+    mov C0,C1
+    mov C1,__tmp_reg__
+    rjmp 12b
+ENDF  __rshift_32
+#endif /* L_rshift_32 */
+;; 8bit arithmetic right shift
+
+#ifdef L_arshift_8
+DEFUN __arshift_8
+    cpi C4,lo8(7)
+    brlo 8f
+    ldi C6,lo8(-1)
+0:
+    ret
+8:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(0)
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+1:
+    asr C6
+    ret
+2:
+    asr C6
+    asr C6
+    ret
+3:
+    asr C6
+    asr C6
+    asr C6
+    ret
+4:
+    asr C6
+    asr C6
+    asr C6
+    asr C6
+    ret
+5:
+    asr C6
+    asr C6
+    asr C6
+    asr C6
+    asr C6
+    ret
+6:
+    bst C6,6
+    lsl C6
+    sbc C6,C6
+    bld C6,0
+    ret
+ENDF  __arshift_8
+#endif /* L_arshift_8 */
+
+;; 16bit arithmetic right shift
+#ifdef L_arshift_16
+DEFUN __arshift_16
+    cpi C4,lo8(15)
+    brlo 16f
+    ldi C6,lo8(-1)
+    ldi C7,lo8(-1)
+    ret
+16:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(15)))
+    sbci A7,hi8(-(gs(15)))
+    XJMP __tablejump2__
+15:
+    .word gs(0)
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+    .word gs(7)
+    .word gs(8)
+    .word gs(9)
+    .word gs(10)
+    .word gs(11)
+    .word gs(12)
+    .word gs(13)
+    .word gs(14)
+0:
+    ret
+1:
+    asr C7
+    ror C6
+    ret
+2:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    ret
+3:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    ret
+4:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    ret
+5:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    ret
+6:
+    mov __tmp_reg__,C6
+    mov C6,C7
+    lsl __tmp_reg__
+    rol C6
+    sbc C7,C7
+    lsl __tmp_reg__
+    rol C6
+    rol C7
+    ret
+7:
+    lsl C6
+    mov C6,C7
+    rol C6
+    sbc C7,C7
+    ret
+8:
+    mov C6,C7
+    lsl C7
+    sbc C7,C7
+    ret
+9:
+    mov C6,C7
+    lsl C7
+    sbc C7,C7
+    asr C6
+    ret
+10:
+    mov C6,C7
+    lsl C7
+    sbc C7,C7
+    asr C6
+    asr C6
+    ret
+#ifdef __AVR_HAVE_MUL__
+11:
+    ldi C6,0x20
+    muls C7,C6
+    mov C6,r1
+    sbc C7,C7
+    clr __zero_reg__
+    ret
+12:
+    ldi C6,0x10
+    muls C7,C6
+    mov C6,r1
+    sbc C7,C7
+    clr __zero_reg__
+    ret
+13:
+    ldi C6,0x08
+    muls C7,C6
+    mov C6,r1
+    sbc C7,C7
+    clr __zero_reg__
+    ret
+#else /* __AVR_HAVE_MUL__ */
+11:
+    mov C6,C7
+    lsl C7
+    sbc C7,C7
+    asr C6
+    asr C6
+    asr C6
+    ret
+12:
+    mov C6,C7
+    lsl C7
+    sbc C7,C7
+    asr C6
+    asr C6
+    asr C6
+    asr C6
+    ret
+13:
+    mov C6,C7
+    lsl C7
+    sbc C7,C7
+    asr C6
+    asr C6
+    asr C6
+    asr C6
+    asr C6
+    ret
+#endif /* __AVR_HAVE_MUL__ */
+14:
+    lsl C7
+    sbc C6,C6
+    lsl C7
+    mov C7,C6
+    rol C6
+    ret
+ENDF  __arshift_16
+#endif /* L_arshift_16 */
+
+;; 24bit arithmetic right shift
+#ifdef L_arshift_24
+DEFUN __arshift_24
+    push B0
+    push B1
+    push B2
+    push B3
+    wmov A6, C6
+    cpi C4,lo8(24)
+    brlo 10f
+    mov B0,__zero_reg__
+    mov B1,__zero_reg__
+    wmov B2, B0
+    dec B0
+    clr B1
+    dec B1
+    clr B2
+    dec B2
+    mov C6,B2
+    wmov C4, B0
+    pop B3
+    pop B2
+    pop B1
+    pop B0
+    ret
+10:
+    ldd C6,Z+2
+    cpi C4,lo8(16)
+    brlo 11f
+    mov C7,C6
+    lsl C7
+    sbc C7,C7
+    mov B1,C7
+    mov B2,C7
+    subi C4,lo8(-(-16))
+    XCALL __arshift_8
+    mov B0,C6
+    mov C6,B2
+    wmov C4, B0
+pop B3
+    pop B2
+    pop B1
+    pop B0
+    ret
+11:
+    ldd C7,Z+1
+    mov B0,__zero_reg__
+    mov B1,__zero_reg__
+    wmov B2, B0
+    cpi C4,lo8(8)
+    brlo 8f
+    mov B0,C7
+    mov B1,C6
+    mov B2,C6
+    lsl B2
+    sbc B2,B2
+    wmov C6, B0
+    subi C4,lo8(-(-9))
+    cpi C4,lo8(7)
+    brsh 12f
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(0)
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+8:
+    ld B1,Z
+    mov B2,C7
+    mov B3,C6
+    wmov A2, B2
+    wmov C6, B0
+    rjmp 2f
+    1:
+    asr A3
+    ror A2
+    ror C7
+    ror C6
+    2:
+    dec C4
+    brpl 1b
+    mov B0,C7
+    mov B1,A2
+    mov B2,A3
+    mov C6,B2
+    wmov C4, B0
+    pop B3
+    pop B2
+    pop B1
+    pop B0
+    ret
+0:
+    asr C7
+    ror C6
+    wmov B0, C6
+    rjmp 13f
+1:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    wmov B0, C6
+    rjmp 13f
+2:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    wmov B0, C6
+    rjmp 13f
+3:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    wmov B0, C6
+    rjmp 13f
+4:
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    asr C7
+    ror C6
+    wmov B0, C6
+    rjmp 13f
+5:
+    mov __tmp_reg__,C6
+    mov C6,C7
+    lsl __tmp_reg__
+    rol C6
+    sbc C7,C7
+    lsl __tmp_reg__
+    rol C6
+    rol C7
+    wmov B0, C6
+    rjmp 13f
+6:
+    lsl C6
+    mov C6,C7
+    rol C6
+    sbc C7,C7
+12:
+    wmov B0, C6
+13:
+    mov C6,B2
+    wmov C4, B0
+pop B3
+    pop B2
+    pop B1
+    pop B0
+    ret
+ENDF  __arshift_24
+#endif /* L_arshift_24 */
+
+;; 32bit arithmetic right shift
+#ifdef L_arshift_32
+DEFUN __arshift_32
+    push A0
+    push A1
+    push A4
+    push A5
+    rcall .
+    rcall .
+    in A4,__SP_L__
+    in A5,__SP_H__
+    wmov A6, C6
+    ld C6,Z
+    ldd C7,Z+1
+    ldd A2,Z+2
+    ldd A3,Z+3
+    cpi C4,lo8(32)
+    brlt .+2
+    rjmp 7f
+    cpi C4,lo8(24)
+    brlt 10f
+    subi C4,lo8(-(-24))
+    mov C6,A3
+    XCALL __arshift_8
+    mov A0,C6
+    lsl C6
+    sbc A1,A1
+    sbc C0,C0
+    sbc C1,C1
+    std Y+1,A0
+    std Y+2,A1
+    std Y+3,C0
+    std Y+4,C1
+8:
+    ldd C4,Y+1
+    ldd C5,Y+2
+    ldd C6,Y+3
+    ldd C7,Y+4
+pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop __tmp_reg__
+    pop A5
+    pop A4
+    pop A1
+    pop A0
+    ret
+10:
+    cpi C4,lo8(16)
+    brlt 12f
+    wmov C0, A2
+    subi C4,lo8(-(-17))
+    cpi C4,lo8(7)
+    brlo 14f
+11:
+    wmov C6, C0
+    lsl C1
+    sbc A2,A2
+    sbc A3,A3
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 8b
+12:
+    cpi C4,lo8(8)
+    brlt 13f
+    subi C4,lo8(-(-8))
+    wmov A0, C6
+    wmov C0, A2
+    rjmp 2f
+    1:
+    asr C1
+    ror C0
+    ror A1
+    ror A0
+    2:
+    dec C4
+    brpl 1b
+    wmov C4, C0
+    wmov C2, A0
+    std Y+1,C3
+    std Y+2,C4
+    std Y+3,C5
+    mov A1,A3
+    lsl A1
+    sbc A1,A1
+    std Y+4,A1
+    rjmp 8b
+13:
+    wmov C0, C6
+    wmov C2, A2
+    rjmp 2f
+    1:
+    asr C3
+    ror C2
+    ror C1
+    ror C0
+    2:
+    dec C4
+    brpl 1b
+    std Y+1,C0
+    std Y+2,C1
+    std Y+3,C2
+    std Y+4,C3
+    rjmp 8b
+14:
+    mov A6,C4
+    ldi A7,0
+    subi A6,lo8(-(gs(9)))
+    sbci A7,hi8(-(gs(9)))
+    XJMP __tablejump2__
+9:
+    .word gs(0)
+    .word gs(1)
+    .word gs(2)
+    .word gs(3)
+    .word gs(4)
+    .word gs(5)
+    .word gs(6)
+0:
+    asr C1
+    ror C0
+    rjmp 11b
+1:
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    rjmp 11b
+2:
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    rjmp 11b
+3:
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    rjmp 11b
+4:
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    asr C1
+    ror C0
+    rjmp 11b
+5:
+    mov __tmp_reg__,C0
+    mov C0,C1
+    lsl __tmp_reg__
+    rol C0
+    sbc C1,C1
+    lsl __tmp_reg__
+    rol C0
+    rol C1
+    rjmp 11b
+6:
+    lsl C0
+    mov C0,C1
+    rol C0
+    sbc C1,C1
+    rjmp 11b
+7:
+    ldi C6,lo8(-1)
+    ldi C7,lo8(-1)
+    wmov A2, C6
+    std Y+1,C6
+    std Y+2,C7
+    std Y+3,A2
+    std Y+4,A3
+    rjmp 8b
+ENDF  __arshift_32
+#endif /* L_arshift_32 */
+
+#undef A0
+#undef A1
+#undef A2
+#undef A3
+#undef A4
+#undef A5
+#undef A6
+#undef A7
+
+#undef C0
+#undef C1
+#undef C2
+#undef C3
+#undef C4
+#undef C5
+#undef C6
+#undef C7
+
+#undef B0
+#undef B1
+#undef B2
+#undef B3
+
 #endif /* if not __AVR_TINY__ */
