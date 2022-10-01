@@ -6168,21 +6168,6 @@ ashlqi3_out (rtx_insn *insn, rtx operands[], int *len)
 	  *len = 1;
 	  return "clr %0";
 
-	case 1:
-	  *len = 1;
-	  return "lsl %0";
-
-	case 2:
-	  *len = 2;
-	  return ("lsl %0" CR_TAB
-		  "lsl %0");
-
-	case 3:
-	  *len = 3;
-	  return ("lsl %0" CR_TAB
-		  "lsl %0" CR_TAB
-		  "lsl %0");
-
 	case 4:
 	  if (test_hard_reg_class (LD_REGS, operands[0]))
 	    {
@@ -6790,35 +6775,6 @@ ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 
       switch (INTVAL (operands[2]))
 	{
-	case 1:
-	  *len = 1;
-	  return "asr %0";
-
-	case 2:
-	  *len = 2;
-	  return ("asr %0" CR_TAB
-		  "asr %0");
-
-	case 3:
-	  *len = 3;
-	  return ("asr %0" CR_TAB
-		  "asr %0" CR_TAB
-		  "asr %0");
-
-	case 4:
-	  *len = 4;
-	  return ("asr %0" CR_TAB
-		  "asr %0" CR_TAB
-		  "asr %0" CR_TAB
-		  "asr %0");
-
-	case 5:
-	  *len = 5;
-	  return ("asr %0" CR_TAB
-		  "asr %0" CR_TAB
-		  "asr %0" CR_TAB
-		  "asr %0" CR_TAB
-		  "asr %0");
 
 	case 6:
 	  *len = 4;
@@ -7314,6 +7270,7 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 {
   if (CONST_INT_P (operands[2]))
     {
+      int ldi_ok = test_hard_reg_class (LD_REGS, operands[0]);
       int k;
 
       if (!len)
@@ -7328,22 +7285,8 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 	  *len = 1;
 	  return "clr %0";
 
-	case 1:
-	  *len = 1;
-	  return "lsr %0";
-
-	case 2:
-	  *len = 2;
-	  return ("lsr %0" CR_TAB
-		  "lsr %0");
-	case 3:
-	  *len = 3;
-	  return ("lsr %0" CR_TAB
-		  "lsr %0" CR_TAB
-		  "lsr %0");
-
 	case 4:
-	  if (test_hard_reg_class (LD_REGS, operands[0]))
+	  if (ldi_ok)
 	    {
 	      *len=2;
 	      return ("swap %0" CR_TAB
@@ -7356,7 +7299,7 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 		  "lsr %0");
 
 	case 5:
-	  if (test_hard_reg_class (LD_REGS, operands[0]))
+	  if (ldi_ok)
 	    {
 	      *len = 3;
 	      return ("swap %0" CR_TAB
@@ -7371,7 +7314,7 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 		  "lsr %0");
 
 	case 6:
-	  if (test_hard_reg_class (LD_REGS, operands[0]))
+	  if (ldi_ok)
 	    {
 	      *len = 4;
 	      return ("swap %0" CR_TAB
