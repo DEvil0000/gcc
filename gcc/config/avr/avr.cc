@@ -6152,6 +6152,7 @@ ashlqi3_out (rtx_insn *insn, rtx operands[], int *len)
   if (CONST_INT_P (operands[2]))
     {
       int k;
+      int *t = len;
 
       if (!len)
 	len = &k;
@@ -6216,6 +6217,7 @@ ashlqi3_out (rtx_insn *insn, rtx operands[], int *len)
 		  "clr %0" CR_TAB
 		  "ror %0");
 	}
+    len = t;
     }
   else if (CONSTANT_P (operands[2]))
     fatal_insn ("internal compiler error.  Incorrect shift:", insn);
@@ -6763,6 +6765,7 @@ ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
   if (CONST_INT_P (operands[2]))
     {
       int k;
+      int *t = len;
 
       if (!len)
 	len = &k;
@@ -6788,6 +6791,7 @@ ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 	  return ("lsl %0" CR_TAB
 		  "sbc %0,%0");
 	}
+    len = t;
     }
   else if (CONSTANT_P (operands[2]))
     fatal_insn ("internal compiler error.  Incorrect shift:", insn);
@@ -7263,6 +7267,7 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
     {
       int ldi_ok = test_hard_reg_class (LD_REGS, operands[0]);
       int k;
+      int *t = len;
 
       if (!len)
 	len = &k;
@@ -7327,6 +7332,7 @@ lshrqi3_out (rtx_insn *insn, rtx operands[], int *len)
 		  "clr %0" CR_TAB
 		  "rol %0");
 	}
+    len = t;
     }
   else if (CONSTANT_P (operands[2]))
     fatal_insn ("internal compiler error.  Incorrect shift:", insn);
