@@ -6043,9 +6043,6 @@ out_shift_with_cnt (const char *templ, rtx_insn *insn, rtx operands[],
   op[2] = operands[2];
   op[3] = operands[3];
 
-  if (plen)
-    *plen = 0;
-
   if (CONST_INT_P (operands[2]))
     {
       /* Operand 3 is a scratch register if this is a
@@ -6499,9 +6496,6 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *operands, int *plen)
   op[1] = operands[1];
   op[2] = operands[2];
   op[3] = operands[3];
-
-  if (plen)
-    *plen = 0;
 
   if (CONST_INT_P (op[2]))
     {
@@ -6986,9 +6980,6 @@ avr_out_ashrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
 
   if (CONST_INT_P (op[2]))
     {
-      if (plen)
-        *plen = 0;
-
       switch (INTVAL (op[2]))
         {
         case 8:
@@ -7621,9 +7612,6 @@ avr_out_lshrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
 
   if (CONST_INT_P (op[2]))
     {
-      if (plen)
-        *plen = 0;
-
       switch (INTVAL (op[2]))
         {
         case 8:
