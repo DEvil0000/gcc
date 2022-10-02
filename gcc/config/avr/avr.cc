@@ -6773,6 +6773,21 @@ ashrqi3_out (rtx_insn *insn, rtx operands[], int *len)
       switch (INTVAL (operands[2]))
 	{
 
+  case 4:
+    *len = 4;
+    return ("asr %0" CR_TAB
+            "asr %0" CR_TAB
+            "asr %0" CR_TAB
+            "asr %0");
+
+  case 5:
+    *len = 5;
+    return ("asr %0" CR_TAB
+            "asr %0" CR_TAB
+            "asr %0" CR_TAB
+            "asr %0" CR_TAB
+            "asr %0");
+
 	case 6:
 	  *len = 4;
 	  return ("bst %0,6"  CR_TAB
