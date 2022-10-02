@@ -6501,6 +6501,11 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *operands, int *plen)
 
   if (CONST_INT_P (op[2]))
     {
+      int scratch = (GET_CODE (PATTERN (insn)) == PARALLEL
+                     && XVECLEN (PATTERN (insn), 0) == 3
+                     && REG_P (operands[3]));
+      int ldi_ok = test_hard_reg_class (LD_REGS, operands[0]);
+
       switch (INTVAL (op[2]))
         {
         default:
@@ -6510,6 +6515,101 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *operands, int *plen)
           return avr_asm_len ("clr %A0" CR_TAB
                               "clr %B0" CR_TAB
                               "clr %C0", op, plen, 3);
+
+        case 4:
+          if (optimize_size && scratch)
+            break;  /* 6 */
+          if (ldi_ok)
+            {
+              return avr_asm_len ("swap %C0"        CR_TAB
+                                  "andi %C0, 0xf0"  CR_TAB
+                                  "swap %B0"        CR_TAB
+                                  "eor %C0, %B0"    CR_TAB
+                                  "andi %B0, 0xf0"  CR_TAB
+                                  "eor %C0, %B0"    CR_TAB
+                                  "swap %A0"        CR_TAB
+                                  "eor %B0, %A0"    CR_TAB
+                                  "andi %A0, 0xf0"  CR_TAB
+                                  "eor %B0, %A0", op, plen, 10);
+            }
+          if (scratch)
+            {
+              return avr_asm_len ("swap %C0"      CR_TAB
+                                  "ldi %3,0xf0"   CR_TAB
+                                  "and %C0, %3"   CR_TAB
+                                  "swap %B0"      CR_TAB
+                                  "eor %C0, %B0"  CR_TAB
+                                  "and %B0, %3"   CR_TAB
+                                  "eor %C0, %B0"  CR_TAB
+                                  "swap %A0"      CR_TAB
+                                  "eor %B0, %A0"  CR_TAB
+                                  "and %A0, %3"   CR_TAB
+                                  "eor %B0, %A0", op, plen, 11);
+            }
+          break;  /* optimize_size ? 7 : 9 */
+
+        case 5:
+          if (optimize_size)
+            break;  /* scratch ? 6 : 7 */
+          if (ldi_ok)
+            {
+              return avr_asm_len ("lsl %A0"         CR_TAB
+                                  "rol %B0"         CR_TAB
+                                  "rol %C0"         CR_TAB
+                                  "swap %C0"        CR_TAB
+                                  "andi %C0, 0xf0"  CR_TAB
+                                  "swap %B0"        CR_TAB
+                                  "eor %C0, %B0"    CR_TAB
+                                  "andi %B0, 0xf0"  CR_TAB
+                                  "eor %C0, %B0"    CR_TAB
+                                  "swap %A0"        CR_TAB
+                                  "eor %B0, %A0"    CR_TAB
+                                  "andi %A0, 0xf0"  CR_TAB
+                                  "eor %B0, %A0", op, plen, 13);
+            }
+          if (scratch)
+            {
+              return avr_asm_len ("lsl %A0"         CR_TAB
+                                  "rol %B0"         CR_TAB
+                                  "rol %C0"         CR_TAB
+                                  "swap %C0"      CR_TAB
+                                  "ldi %3,0xf0"   CR_TAB
+                                  "and %C0, %3"   CR_TAB
+                                  "swap %B0"      CR_TAB
+                                  "eor %C0, %B0"  CR_TAB
+                                  "and %B0, %3"   CR_TAB
+                                  "eor %C0, %B0"  CR_TAB
+                                  "swap %A0"      CR_TAB
+                                  "eor %B0, %A0"  CR_TAB
+                                  "and %A0, %3"   CR_TAB
+                                  "eor %B0, %A0", op, plen, 14);
+            }
+          break;  /* 10 */
+
+        case 6:
+          if (optimize_size)
+            break;  /* scratch ? 5 : 6 */
+          return avr_asm_len ("clr __tmp_reg__" CR_TAB
+                  "lsr %C0"         CR_TAB
+                  "ror %B0"         CR_TAB
+                  "ror %A0"         CR_TAB
+                  "ror __tmp_reg__" CR_TAB
+                  "lsr %C0"         CR_TAB
+                  "ror %B0"         CR_TAB
+                  "ror %A0"         CR_TAB
+                  "ror __tmp_reg__" CR_TAB
+                  "mov %C0,%B0"     CR_TAB
+                  "mov %B0,%A0"     CR_TAB
+                  "mov %A0,__tmp_reg__", op, plen, 12);
+
+        case 7:
+          return avr_asm_len ("lsr %C0"     CR_TAB
+                  "mov %C0,%B0" CR_TAB
+                  "mov %B0,%A0" CR_TAB
+                  "clr %A0"     CR_TAB
+                  "ror %C0"     CR_TAB
+                  "ror %B0"     CR_TAB
+                  "ror %A0", op, plen, 7);
 
         case 8:
           {
@@ -7001,6 +7101,13 @@ avr_out_ashrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
     {
       switch (INTVAL (op[2]))
         {
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+          /* XXX try to optimize this too? */
+          break;
+
         case 8:
           if (dest <= src)
             return avr_asm_len ("mov %A0,%B1" CR_TAB
@@ -7633,8 +7740,104 @@ avr_out_lshrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
 
   if (CONST_INT_P (op[2]))
     {
+      int scratch = (GET_CODE (PATTERN (insn)) == PARALLEL
+                     && XVECLEN (PATTERN (insn), 0) == 3
+                     && REG_P (operands[3]));
+      int ldi_ok = test_hard_reg_class (LD_REGS, operands[0]);
+
       switch (INTVAL (op[2]))
         {
+
+        case 4:
+          if (optimize_size && scratch)
+            break;  /* 5 */
+          if (ldi_ok)
+            {
+              return avr_asm_len ("swap %C0"      CR_TAB
+                                  "swap %B0"      CR_TAB
+                                  "swap %A0"      CR_TAB
+                                  "andi %A0,0x0f" CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "andi %B0,0x0f" CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "eor %B0,%C0"   CR_TAB
+                                  "andi %C0,0x0f" CR_TAB
+                                  "eor %B0,%C0", op, plen, 10);
+            }
+          if (scratch)
+            {
+              return avr_asm_len ("swap %C0"      CR_TAB
+                                  "swap %B0"      CR_TAB
+                                  "swap %A0"      CR_TAB
+                                  "ldi %3,0x0f"   CR_TAB
+                                  "and %A0,%3"    CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "and %B0,%3"    CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "eor %B0,%C0"   CR_TAB
+                                  "and %C0,%3"    CR_TAB
+                                  "eor %B0,%C0", op, plen, 11);
+            }
+          break;  /* optimize_size ? 6 : 8 */
+
+        case 5:
+          if (optimize_size)
+            break;  /* scratch ? 5 : 6 */
+          if (ldi_ok)
+            {
+              return avr_asm_len ("lsr %C0"       CR_TAB
+                                  "ror %B0"       CR_TAB
+                                  "ror %A0"       CR_TAB
+                                  "swap %C0"      CR_TAB
+                                  "swap %B0"      CR_TAB
+                                  "swap %A0"      CR_TAB
+                                  "andi %A0,0x0f" CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "andi %B0,0x0f" CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "eor %B0,%C0"   CR_TAB
+                                  "andi %C0,0x0f" CR_TAB
+                                  "eor %B0,%C0", op, plen, 13);
+            }
+          if (scratch)
+            {
+              return avr_asm_len ("lsr %C0"       CR_TAB
+                                  "ror %B0"       CR_TAB
+                                  "ror %A0"       CR_TAB
+                                  "swap %C0"      CR_TAB
+                                  "swap %B0"      CR_TAB
+                                  "swap %A0"      CR_TAB
+                                  "ldi %3,0x0f"   CR_TAB
+                                  "and %A0,%3"    CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "and %B0,%3"    CR_TAB
+                                  "eor %A0,%B0"   CR_TAB
+                                  "eor %B0,%C0"   CR_TAB
+                                  "and %C0,%3"    CR_TAB
+                                  "eor %B0,%C0", op, plen, 14);
+            }
+          break;  /* 10 */
+
+        case 6:
+          if (optimize_size)
+            break;  /* scratch ? 5 : 6 */
+          return avr_asm_len ("clr __tmp_reg__" CR_TAB
+                              "lsl %A0"         CR_TAB
+                              "rol %B0"         CR_TAB
+                              "rol %C0"         CR_TAB
+                              "rol __tmp_reg__" CR_TAB
+                              "lsl %A0"         CR_TAB
+                              "rol %B0"         CR_TAB
+                              "rol %C0"         CR_TAB
+                              "rol __tmp_reg__" CR_TAB
+                              "mov %A0,%B0"     CR_TAB
+                              "mov %B0,%C0"     CR_TAB
+                              "mov %C0,__tmp_reg__", op, plen, 12);
+
+        case 7:
+          /* XXX try to optimize this too? */
+          break;
+
         case 8:
           if (dest <= src)
             return avr_asm_len ("mov %A0,%B1" CR_TAB
