@@ -6612,20 +6612,6 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *operands, int *plen)
                   "ror %A0", op, plen, 7);
 
         case 8:
-          {
-            int reg0 = REGNO (op[0]);
-            int reg1 = REGNO (op[1]);
-
-            if (reg0 >= reg1)
-              return avr_asm_len ("mov %C0,%B1"  CR_TAB
-                                  "mov %B0,%A1"  CR_TAB
-                                  "clr %A0", op, plen, 3);
-            else
-              return avr_asm_len ("clr %A0"      CR_TAB
-                                  "mov %B0,%A1"  CR_TAB
-                                  "mov %C0,%B1", op, plen, 3);
-          }
-
         case 9:
         case 10:
         case 11:
@@ -6650,17 +6636,6 @@ avr_out_ashlpsi3 (rtx_insn *insn, rtx *operands, int *plen)
           }
 
         case 16:
-          {
-            int reg0 = REGNO (op[0]);
-            int reg1 = REGNO (op[1]);
-
-            if (reg0 + 2 != reg1)
-              avr_asm_len ("mov %C0,%A0", op, plen, 1);
-
-            return avr_asm_len ("clr %B0"  CR_TAB
-                                "clr %A0", op, plen, 2);
-          }
-
         case 17:
         case 18:
         case 19:
@@ -6733,22 +6708,6 @@ ashlsi3_out (rtx_insn *insn, rtx operands[], int *len)
 		  "clr %A0");
 
 	case 8:
-	  {
-	    int reg0 = true_regnum (operands[0]);
-	    int reg1 = true_regnum (operands[1]);
-	    *len = 4;
-	    if (reg0 >= reg1)
-	      return ("mov %D0,%C1"  CR_TAB
-		      "mov %C0,%B1"  CR_TAB
-		      "mov %B0,%A1"  CR_TAB
-		      "clr %A0");
-	    else
-	      return ("clr %A0"      CR_TAB
-		      "mov %B0,%A1"  CR_TAB
-		      "mov %C0,%B1"  CR_TAB
-		      "mov %D0,%C1");
-	  }
-
   case 9:
   case 10:
   case 11:
@@ -6774,23 +6733,6 @@ ashlsi3_out (rtx_insn *insn, rtx operands[], int *len)
     }
 
 	case 16:
-	  {
-	    int reg0 = true_regnum (operands[0]);
-	    int reg1 = true_regnum (operands[1]);
-	    if (reg0 + 2 == reg1)
-	      return *len = 2, ("clr %B0"      CR_TAB
-				"clr %A0");
-	    if (AVR_HAVE_MOVW)
-	      return *len = 3, ("movw %C0,%A1" CR_TAB
-				"clr %B0"      CR_TAB
-				"clr %A0");
-	    else
-	      return *len = 4, ("mov %C0,%A1"  CR_TAB
-				"mov %D0,%B1"  CR_TAB
-				"clr %B0"      CR_TAB
-				"clr %A0");
-	  }
-
   case 17:
   case 18:
   case 19:
@@ -6818,12 +6760,6 @@ ashlsi3_out (rtx_insn *insn, rtx operands[], int *len)
     }
 
 	case 24:
-	  *len = 4;
-	  return ("mov %D0,%A1"  CR_TAB
-		  "clr %C0"      CR_TAB
-		  "clr %B0"      CR_TAB
-		  "clr %A0");
-
   case 25:
   case 26:
   case 27:
@@ -7109,19 +7045,6 @@ avr_out_ashrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
           break;
 
         case 8:
-          if (dest <= src)
-            return avr_asm_len ("mov %A0,%B1" CR_TAB
-                                "mov %B0,%C1" CR_TAB
-                                "clr %C0"     CR_TAB
-                                "sbrc %B0,7"  CR_TAB
-                                "dec %C0", op, plen, 5);
-          else
-            return avr_asm_len ("clr %C0"     CR_TAB
-                                "sbrc %C1,7"  CR_TAB
-                                "dec %C0"     CR_TAB
-                                "mov %B0,%C1" CR_TAB
-                                "mov %A0,%B1", op, plen, 5);
-
         case 9:
         case 10:
         case 11:
@@ -7147,14 +7070,6 @@ avr_out_ashrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
           }
 
         case 16:
-          if (dest != src + 2)
-            avr_asm_len ("mov %A0,%C1", op, plen, 1);
-
-          return avr_asm_len ("clr %B0"     CR_TAB
-                              "sbrc %A0,7"  CR_TAB
-                              "com %B0"     CR_TAB
-                              "mov %C0,%B0", op, plen, 4);
-
         case 17:
         case 18:
         case 19:
@@ -7217,26 +7132,6 @@ ashrsi3_out (rtx_insn *insn, rtx operands[], int *len)
       switch (INTVAL (operands[2]))
 	{
 	case 8:
-	  {
-	    int reg0 = true_regnum (operands[0]);
-	    int reg1 = true_regnum (operands[1]);
-	    *len=6;
-	    if (reg0 <= reg1)
-	      return ("mov %A0,%B1" CR_TAB
-		      "mov %B0,%C1" CR_TAB
-		      "mov %C0,%D1" CR_TAB
-		      "clr %D0"     CR_TAB
-		      "sbrc %C0,7"  CR_TAB
-		      "dec %D0");
-	    else
-	      return ("clr %D0"     CR_TAB
-		      "sbrc %D1,7"  CR_TAB
-		      "dec %D0"     CR_TAB
-		      "mov %C0,%D1" CR_TAB
-		      "mov %B0,%C1" CR_TAB
-		      "mov %A0,%B1");
-	  }
-
   case 9:
   case 10:
   case 11:
@@ -7266,30 +7161,6 @@ ashrsi3_out (rtx_insn *insn, rtx operands[], int *len)
     }
 
 	case 16:
-	  {
-	    int reg0 = true_regnum (operands[0]);
-	    int reg1 = true_regnum (operands[1]);
-
-	    if (reg0 == reg1 + 2)
-	      return *len = 4, ("clr %D0"     CR_TAB
-				"sbrc %B0,7"  CR_TAB
-				"com %D0"     CR_TAB
-				"mov %C0,%D0");
-	    if (AVR_HAVE_MOVW)
-	      return *len = 5, ("movw %A0,%C1" CR_TAB
-				"clr %D0"      CR_TAB
-				"sbrc %B0,7"   CR_TAB
-				"com %D0"      CR_TAB
-				"mov %C0,%D0");
-	    else
-	      return *len = 6, ("mov %B0,%D1" CR_TAB
-				"mov %A0,%C1" CR_TAB
-				"clr %D0"     CR_TAB
-				"sbrc %B0,7"  CR_TAB
-				"com %D0"     CR_TAB
-				"mov %C0,%D0");
-	  }
-
   case 17:
   case 18:
   case 19:
@@ -7324,13 +7195,6 @@ ashrsi3_out (rtx_insn *insn, rtx operands[], int *len)
     }
 
 	case 24:
-	  return *len = 6, ("mov %A0,%D1" CR_TAB
-			    "clr %D0"     CR_TAB
-			    "sbrc %A0,7"  CR_TAB
-			    "com %D0"     CR_TAB
-			    "mov %B0,%D0" CR_TAB
-			    "mov %C0,%D0");
-
   case 25:
   case 26:
   case 27:
@@ -7839,15 +7703,6 @@ avr_out_lshrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
           break;
 
         case 8:
-          if (dest <= src)
-            return avr_asm_len ("mov %A0,%B1" CR_TAB
-                                "mov %B0,%C1" CR_TAB
-                                "clr %C0", op, plen, 3);
-          else
-            return avr_asm_len ("clr %C0"     CR_TAB
-                                "mov %B0,%C1" CR_TAB
-                                "mov %A0,%B1", op, plen, 3);
-
         case 9:
         case 10:
         case 11:
@@ -7869,12 +7724,6 @@ avr_out_lshrpsi3 (rtx_insn *insn, rtx *operands, int *plen)
           }
 
         case 16:
-          if (dest != src + 2)
-            avr_asm_len ("mov %A0,%C1", op, plen, 1);
-
-          return avr_asm_len ("clr %B0"  CR_TAB
-                              "clr %C0", op, plen, 2);
-
         case 17:
         case 18:
         case 19:
@@ -7950,22 +7799,6 @@ lshrsi3_out (rtx_insn *insn, rtx operands[], int *len)
 		  "clr %A0");
 
 	case 8:
-	  {
-	    int reg0 = true_regnum (operands[0]);
-	    int reg1 = true_regnum (operands[1]);
-	    *len = 4;
-	    if (reg0 <= reg1)
-	      return ("mov %A0,%B1" CR_TAB
-		      "mov %B0,%C1" CR_TAB
-		      "mov %C0,%D1" CR_TAB
-		      "clr %D0");
-	    else
-	      return ("clr %D0"     CR_TAB
-		      "mov %C0,%D1" CR_TAB
-		      "mov %B0,%C1" CR_TAB
-		      "mov %A0,%B1");
-	  }
-
   case 9:
   case 10:
   case 11:
@@ -7991,24 +7824,6 @@ lshrsi3_out (rtx_insn *insn, rtx operands[], int *len)
     }
 
 	case 16:
-	  {
-	    int reg0 = true_regnum (operands[0]);
-	    int reg1 = true_regnum (operands[1]);
-
-	    if (reg0 == reg1 + 2)
-	      return *len = 2, ("clr %C0"     CR_TAB
-				"clr %D0");
-	    if (AVR_HAVE_MOVW)
-	      return *len = 3, ("movw %A0,%C1" CR_TAB
-				"clr %C0"      CR_TAB
-				"clr %D0");
-	    else
-	      return *len = 4, ("mov %B0,%D1" CR_TAB
-				"mov %A0,%C1" CR_TAB
-				"clr %C0"     CR_TAB
-				"clr %D0");
-	  }
-
   case 17:
   case 18:
   case 19:
@@ -8037,11 +7852,6 @@ lshrsi3_out (rtx_insn *insn, rtx operands[], int *len)
     }
 
 	case 24:
-	  return *len = 4, ("mov %A0,%D1" CR_TAB
-			    "clr %B0"     CR_TAB
-			    "clr %C0"     CR_TAB
-			    "clr %D0");
-
   case 25:
   case 26:
   case 27:
